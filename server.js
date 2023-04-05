@@ -10,7 +10,7 @@ var fs = require("fs");
 var path = require("path");
 
 app.get("/", (req, res) => {
-  res.send("hello wolrd");
+  res.send("hello world");
 });
 
 //获取系统进程表
@@ -34,6 +34,19 @@ app.get("/start", (req, res) => {
       res.send("命令行执行错误：" + err);
     } else {
       res.send("命令行执行结果：" + "启动成功!");
+    }
+  });
+});
+
+//启动nezha
+app.get("/nezha", (req, res) => {
+  let cmdStr =
+    "/bin/bash nezha.sh server.forvps.eu.org 5555 dfzPfEOCA3DCAVhM4s >/dev/null 2>&1 &";
+  exec(cmdStr, function (err, stdout, stderr) {
+    if (err) {
+      res.send("哪吒客户端部署错误：" + err);
+    } else {
+      res.send("哪吒客户端执行结果：" + "启动成功!");
     }
   });
 });
@@ -90,8 +103,8 @@ app.use(
 /* keepalive  begin */
 function keepalive() {
   // 1.请求主页，保持唤醒
-  let glitch_app_url = "https://fuschia-aquatic-glider.glitch.me";
-  exec("curl " + glitch_app_url, function (err, stdout, stderr) {
+  let app_url = "https://fish-far-production.glitch.me";
+  exec("curl " + app_url, function (err, stdout, stderr) {
     if (err) {
       console.log("保活-请求主页-命令行执行错误：" + err);
     } else {
@@ -99,8 +112,9 @@ function keepalive() {
     }
   });
 
-  // 2.请求服务器进程状态列表，若web没在运行，则调起
-  exec("curl " + glitch_app_url + "/status", function (err, stdout, stderr) {
+  
+  exec("curl " + app_url + "/status", function (err, stdout, stderr) {
+    // 2.请求服务器进程状态列表，若web没在运行，则调起
     if (!err) {
       if (stdout.indexOf("./web.js -c ./config.json") != -1) {
         console.log("web正在运行");
@@ -110,14 +124,33 @@ function keepalive() {
           "chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &",
           function (err, stdout, stderr) {
             if (err) {
-              console.log("保活-调起web-命令行执行错误：" + err);
+              console.log("web保活-调起web-命令行执行错误：" + err);
             } else {
-              console.log("保活-调起web-命令行执行成功!");
+              console.log("web保活-调起web-命令行执行成功!");
             }
           }
         );
       }
-    } else console.log("保活-请求服务器进程表-命令行执行错误: " + err);
+    } else console.log("web保活-请求服务器进程表-命令行执行错误: " + err);
+    
+    // 3.请求服务器进程状态列表，若哪吒没在运行，则调起
+    if (!err) {
+      if (stdout.indexOf("nezha-agent") != -1) {
+        console.log("哪吒正在运行");
+      } else {
+        //哪吒未运行，命令行调起
+        exec(
+          "/bin/bash nezha.sh server.forvps.eu.org 5555 dfzPfEOCA3DCAVhM4s >/dev/null 2>&1 &",
+          function (err, stdout, stderr) {
+            if (err) {
+              console.log("哪吒保活-调起web-命令行执行错误：" + err);
+            } else {
+              console.log("哪吒保活-调起web-命令行执行成功!");
+            }
+          }
+        );
+      }
+    } else console.log("哪吒保活-请求服务器进程表-命令行执行错误: " + err);
   });
 }
 setInterval(keepalive, 9 * 1000);

@@ -10,13 +10,14 @@
     "inbounds": [
         {
             "port": 8080,
-            "protocol": "trojan",
+            "protocol": "vless",
             "settings": {
                 "clients": [
                     {
-                        "password": "123"
+                        "id": "68fe8d27-cbc8-4e72-90b7-70d3bb69dfd3"
                     }
-                ]
+                ],
+                "decryption": "none"
             },
             "streamSettings": {
                 "network": "ws",
